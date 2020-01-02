@@ -766,7 +766,7 @@ spec:
 Creating the service from the command line will set the selector key as *app* and the value as the service name.
 
 ```sh
-kubectl create svc clutserip webapp-svc --tcp=8080:80
+kubectl create svc clusterip webapp-svc --tcp=8080:80
 ```
 
 Ports are ordered as ```<service port>:<target port>```.
