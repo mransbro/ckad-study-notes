@@ -96,7 +96,7 @@ Configuration data can be consumed by pods via:
 2. Setting command-line arguments for a container
 3. Populate config files in a volume.
 
-The data field contains the configuration data in the form of key value pairs.
+In the manifest the data field contains the configuration data in the form of key value pairs.
 
 ```yaml
 apiVersion: v1
@@ -108,7 +108,7 @@ data:
   dayofweek: tuesday
 ```
 
-ConfigMaps can be created from directories, files and literal values.
+ConfigMaps can be created from directories and files.
 
 Creating from directories and files both use the ```--from-file``` flag
 
@@ -122,9 +122,13 @@ Each file in the directory will create a key: value pair with the key being the 
 kubectl create configmap calendar-data --from-file=random-data=app/settings/calendar-data
 ```
 
+Use the ```from-literal``` flag to create a configMap from values on the command line.
+
 ```sh
 kubectl create configmap calendar-data --from-literal=FIRSTDAY=Monday
 ```
+
+Environment variables can be added under ```envFrom:``` and ```env:``` depending on which key:values we want to load.
 
 ```yaml
 apiVersion: v1
@@ -136,7 +140,9 @@ data:
   FIRSTDAY: Monday
   FIRSTMONTH: January
 ---
+#
 # Load all key: values from the configmap
+#
 apiVersion: v1
 kind: Pod
 metadata:
@@ -150,7 +156,9 @@ spec:
         - configMapRef:
             name: calender-data
 ---
+#
 # Load a single value from the configmap
+#
 apiVersion: v1
 kind: Pod
 metadata:
@@ -167,6 +175,8 @@ spec:
               name: calender-data
               key: FIRSTDAY
 ```
+
+The concept is similar when loading as volumes.
 
 ```yaml
 # Load the configmap as a volume
@@ -209,7 +219,7 @@ spec:
           path: NAMEOFDAY
 ```
 
-ConfigMaps must be created before they are consumed in pods unless they are marked as optional. References to ConfigMaps that do not exist will prevent the pod from starting.
+ConfigMaps must be created before they are consumed unless they are marked as optional. References to ConfigMaps that do not exist will prevent the pod from starting.
 
 ### Understand SecurityContexts
 
@@ -263,7 +273,7 @@ spec:
 
 ### Define an application's resource requirements
 
-Resources control memory and CPU. Resources can specify a request and a limit. If a pod is scheduled the container is guaranteed the requested resources. If a pod exceeds its CPU limit it will be throttled.
+CPU and memory are collectively referred to as compute resources, or just resources. Compute resources are measurable quantities that can be requested, allocated, and consumed. Resources can specify a request and a limit. If a pod is scheduled the container is guaranteed the requested resources. If a pod exceeds its CPU limit it will be throttled.
 If it exceeds its memory limit a process using the most memory will be killed by the kernel.
 
 CPU is specified in units of cores such as 0.5CPU or the suffix m to mean milli. 100m, 100 milliCPU and 0.1CPU are the same.
@@ -272,12 +282,12 @@ CPU is specified in units of cores such as 0.5CPU or the suffix m to mean milli.
 apiVersion: v1
 kind: Pod
 metadata:
-  name: cpu-demo
-  namespace: cpu-example
+  name: nginx
+  namespace: web
 spec:
   containers:
-  - name: cpu-demo-ctr
-    image: vish/stress
+  - name: nginx
+    image: nginx:1.7.9
     resources:
       limits:
         cpu: "1"
@@ -291,12 +301,12 @@ Memory is specified in units of bytes; E, P, T, G, M, K and the power of 2 equiv
 apiVersion: v1
 kind: Pod
 metadata:
-  name: memory-demo
-  namespace: mem-example
+  name: nginx
+  namespace: web
 spec:
   containers:
-  - name: memory-demo-ctr
-    image: polinux/stress
+  - name: nginx
+    image: nginx:1.7.9
     resources:
       limits:
         memory: "200Mi"
@@ -311,7 +321,7 @@ kubectl run nginx --restart=Never --image=nginx --requests="cpu=100m,memory=256M
 ### Create & consume Secrets
 
 Secrets are for storing sensitive information such as passwords or tokens.
-Secrets can either be mounted as files in a volume.
+They can be mounted as files in a volume or as environment variables.
 
 ```yaml
 apiVersion: v1
